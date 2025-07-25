@@ -149,14 +149,14 @@ class FlagEvalUploader:
                     progbar.update(chunk.size_kb)
                     innerbar.update(chunk.size_kb)
                     continue
-                self._upload_chunk(item, buf, chunk)
+                self._upload_chunk(item, buf, chunk, is_update=is_update)
 
                 progbar.update(chunk.size_kb)
                 innerbar.update(chunk.size_kb)
         innerbar.close()
 
     @retry(exceptions=(FlagEvalServerError, json.JSONDecodeError), tries=5, delay=1, backoff=2)
-    def _upload_chunk(self, item: File, buf: io.BytesIO, chunk: Chunk):
+    def _upload_chunk(self, item: File, buf: io.BytesIO, chunk: Chunk, is_update: int = 0):
         url = f'{self.host}{self.CHUNKS_PATH.format(item.id_)}'
         files = {'file': buf}
         values = {
