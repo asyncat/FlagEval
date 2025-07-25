@@ -5,9 +5,9 @@ from dataclasses import dataclass, field
 from typing import List, Dict
 
 import requests
-import retry
 import tqdm
 import sys
+from retry import retry
 
 
 @dataclass
