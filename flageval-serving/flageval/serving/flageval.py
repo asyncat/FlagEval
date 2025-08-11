@@ -26,6 +26,12 @@ class File:
     ks3_ready: bool = False
     chunks: List[Chunk] = field(default_factory=list)
 
+    @property
+    def posix_filename(self):
+        from pathlib import PurePosixPath, PurePath
+        p = PurePath(self.filename)
+        return str(PurePosixPath(p))
+
 
 class FlagEvalError(Exception):
     pass
@@ -120,7 +126,7 @@ class FlagEvalUploader:
             'token': self.token,
             'files': [
                 {
-                    'filename': item.filename,
+                    'filename': item.posix_filename,
                     'sizeKb': item.size_kb,
                 }
                 for item in local_files
@@ -167,7 +173,7 @@ class FlagEvalUploader:
         resp = requests.post(
             url, files=files, params=values,
             headers={
-                'Content-Disposition': f'attachment; filename="{item.filename}"',
+                'Content-Disposition': f'attachment; filename="{item.posix_filename}"',
             },
         )
         if resp.status_code >= 500:
@@ -312,19 +318,3 @@ class FlagEvalManager(FlagEvalUploader):
         else:
             print("error: " + self.src_path + " is not exist", file=sys.stderr)
         return results
-
-    def _create_remote_files(self, local_files: List[File]):
-        url = f'{self.host}{self.FILES_PATH}'
-        resp = requests.post(url, json={
-            'token': self.token,
-            'files': [
-                {
-                    'filename': item.filename,
-                    'sizeKb': item.size_kb,
-                }
-                for item in local_files
-            ]
-        })
-        if resp.status_code >= 400:
-            raise FlagEvalError(resp.status_code, resp.text)
-        return resp.json()
